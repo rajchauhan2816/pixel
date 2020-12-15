@@ -61,7 +61,7 @@ export class ImageService {
                     tags,
                     createAt: new Date().toISOString(),
                     format: splitName[1],
-                    name: hashedName,
+                    name: dto.file[i].originalname,
                     uploadedBy: username,
                     url: `${this.s3Url}/${this.bucketName}/${hashedName}`,
                     size: dto.file[i].size,

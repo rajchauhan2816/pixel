@@ -2,6 +2,7 @@
 /dist
 /node_modules
 .env
+buckets
 
 # Logs
 logs
