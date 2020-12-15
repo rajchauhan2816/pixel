@@ -4,6 +4,7 @@ import { DynamooseModule } from 'nestjs-dynamoose';
 import { NotificationModule } from './notification/notification.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './auth/auth.module';
         NotificationModule,
         UserModule,
         AuthModule,
+        ImageModule,
     ],
 })
 export class AppModule {}
