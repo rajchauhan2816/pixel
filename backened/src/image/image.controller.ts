@@ -1,27 +1,34 @@
+import { User } from './../user/entities/user.entity';
+import { JwtAuthGuard } from './../auth/jwt-auth.guard';
 import {
     Controller,
     Get,
     Post,
-    Body,
-    Put,
     Param,
     Delete,
     UseInterceptors,
     UploadedFiles,
+    UseGuards,
+    Body,
 } from '@nestjs/common';
 import { ImageService } from './image.service';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { CurrentUser } from '../auth/user.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Controller('image')
 export class ImageController {
     constructor(private readonly imageService: ImageService) {}
 
     @Post()
     @UseInterceptors(FileFieldsInterceptor([{ name: 'file', maxCount: 5 }]))
-    create(@UploadedFiles() createImageDto: CreateImageDto) {
-        return this.imageService.create(createImageDto, 'z1nn');
+    create(
+        @Body() createImageDto: any,
+        @UploadedFiles() upload: any,
+        @CurrentUser() { username }: User,
+    ) {
+        createImageDto.file = upload.file;
+        return this.imageService.create(createImageDto, username);
     }
 
     @Get()
@@ -29,18 +36,25 @@ export class ImageController {
         return this.imageService.findAll();
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.imageService.findOne(+id);
+    @Get('tags')
+    findTags() {
+        return this.imageService.findTags();
     }
 
-    @Put(':id')
-    update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {
-        return this.imageService.update(+id, updateImageDto);
+    @Get('tags/:tag')
+    findImageByTag(@Param('tag') tag: string) {
+        return this.imageService.findAllByTag(tag);
+    }
+
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        const image = await this.imageService.findOne({ id });
+        console.log(image);
+        return image;
     }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
-        return this.imageService.remove(+id);
+        return this.imageService.remove({ id });
     }
 }

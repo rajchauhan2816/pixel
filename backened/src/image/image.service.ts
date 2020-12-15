@@ -1,3 +1,4 @@
+import { Tag, TagKey, TagImage, TagImageKey } from './entities/tag.entity';
 import { ConfigService } from '@nestjs/config';
 import { v4 } from 'uuid';
 import { ImageKey, Image } from './entities/image.entity';
@@ -6,7 +7,6 @@ import { InjectModel, Model } from 'nestjs-dynamoose';
 import { Injectable } from '@nestjs/common';
 import { InjectS3, S3 } from 'nestjs-s3';
 import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
 
 @Injectable()
 export class ImageService {
@@ -18,23 +18,21 @@ export class ImageService {
     constructor(
         @InjectModel('image')
         private readonly model: Model<Image, ImageKey>,
+        @InjectModel('tag') private readonly tagModel: Model<Tag, TagKey>,
+        @InjectModel('tagImage')
+        private readonly tagImageModel: Model<TagImage, TagImageKey>,
         @InjectS3() private readonly s3: S3,
         config: ConfigService,
     ) {
         this.bucketName = config.get('S3_BUCKET') || 'pixel_images';
         this.s3Url = config.get('S3_BASE_URL') || 'http://localhost:4569';
-        this.s3
-            .createBucket({
-                Bucket: this.bucketName,
-            })
-            .promise()
-            .then((val) => console.log(val))
-            .catch((_) => ({}));
     }
     async create(dto: CreateImageDto, username: string) {
         const { categoryType, tags } = dto;
-        const uploadPromises = [];
-        const dbPromises = [];
+
+        const uploadPromises: any[] = [];
+        const dbPromises: any[] = [];
+        const tagImagePromises: any[] = [];
         for (let i = 0; i < dto.file.length; i++) {
             const splitName = dto.file[i].originalname.split('.');
             const hashedName = `${splitName[0]}_${v4()}.${splitName[1]}`;
@@ -52,9 +50,13 @@ export class ImageService {
 
             /* ------------------------- Inserting into database ------------------------ */
 
+            const imageId = v4();
+
+            console.log(tags);
+
             dbPromises.push(
                 this.model.create({
-                    id: v4(),
+                    id: imageId,
                     categoryType,
                     tags,
                     createAt: new Date().toISOString(),
@@ -65,8 +67,16 @@ export class ImageService {
                     size: dto.file[i].size,
                 }),
             );
+
+            /* ------------------------------ Tagging Image ----------------------------- */
+
+            tags.forEach((val) =>
+                tagImagePromises.push(this.linkImageTag(val, imageId)),
+            );
         }
         await Promise.all(uploadPromises);
+
+        await Promise.all(tagImagePromises);
 
         return Promise.all(dbPromises);
     }
@@ -76,15 +86,54 @@ export class ImageService {
         return images;
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} image`;
+    async findAllByTag(tag: string) {
+        const ids = await this.tagImageModel
+            .query('tag')
+            .eq(tag)
+            .using('tagIndex')
+            .exec();
+
+        const imageKeys: ImageKey[] = ids.map((val) => ({
+            id: val.image,
+        }));
+
+        if (imageKeys.length === 0) {
+            return [];
+        }
+
+        const images = await this.model.batchGet(imageKeys);
+        return images;
     }
 
-    update(id: number, _updateImageDto: UpdateImageDto) {
-        return `This action updates a #${id} image`;
+    findOne(key: ImageKey) {
+        return this.model.get(key);
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} image`;
+    async findTags() {
+        // TODO: Add recent 25 tags logic
+        const tags = await this.tagModel.scan().exec();
+        return tags;
+    }
+
+    async linkImageTag(tag: string, image: string) {
+        return this.tagImageModel.create({
+            id: v4(),
+            tag: (await this.createTag(tag)).id,
+            image,
+        });
+    }
+
+    async createTag(id: string) {
+        const tag = await this.tagModel.get({ id });
+        if (tag) return tag;
+        return this.tagModel.create({
+            id,
+            createAt: new Date().toISOString(),
+            usedAt: new Date().toISOString(),
+        });
+    }
+
+    remove(key: ImageKey) {
+        return this.model.delete(key);
     }
 }

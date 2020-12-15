@@ -13,7 +13,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
-import { CurrentUser } from 'src/auth/user.decorator';
+import { CurrentUser } from '../auth/user.decorator';
 
 @Controller('user')
 export class UserController {

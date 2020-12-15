@@ -4,7 +4,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UpdateUserDto } from '../user/dto/update-user.dto';
 import { UserRole } from './entities/user.enum';
-import { hashPassword } from 'src/utils/hashpassword';
+import { hashPassword } from '../utils/hashpassword';
 
 @Injectable()
 export class UserService {

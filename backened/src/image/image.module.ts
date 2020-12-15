@@ -1,3 +1,4 @@
+import { TagSchema, TagImageSchema } from './entities/tag.schema';
 import { ImageSchema } from './entities/image.schema';
 import { DynamooseModule } from 'nestjs-dynamoose';
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -14,6 +15,14 @@ import { S3Module } from 'nestjs-s3';
             {
                 name: 'image',
                 schema: ImageSchema,
+            },
+            {
+                name: 'tag',
+                schema: TagSchema,
+            },
+            {
+                name: 'tagImage',
+                schema: TagImageSchema,
             },
         ]),
         S3Module.forRootAsync({

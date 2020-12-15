@@ -10,6 +10,7 @@ export const ImageSchema = new Schema({
     },
     tags: {
         type: Array,
+        schema: [String],
     },
     name: {
         type: String,

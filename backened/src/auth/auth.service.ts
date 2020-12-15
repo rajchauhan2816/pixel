@@ -1,4 +1,4 @@
-import { hashPassword } from 'src/utils/hashpassword';
+import { hashPassword } from '../utils/hashpassword';
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';

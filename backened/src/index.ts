@@ -1,9 +1,10 @@
+// @ts-ignore
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { createServer, proxy } from 'aws-serverless-express';
-import { eventContext } from 'aws-serverless-express/middleware';
+import { createServer, proxy } from 'aws-serverless-express-binary';
+import { eventContext } from 'aws-serverless-express-binary/middleware';
 import express from 'express';
 import { Server } from 'http';
 import { AppModule } from './app.module';

@@ -10,4 +10,5 @@ export class Image extends BaseImageDto {
     url: string;
     format: string;
     size: string;
+    tags: string[];
 }
