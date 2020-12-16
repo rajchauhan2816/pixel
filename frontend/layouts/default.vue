@@ -7,7 +7,7 @@
     >
       <div class="navbar-brand">
         <a class="navbar-item" href="/">
-          <img src="~assets/buefy.png" alt="Buefy" height="28" />
+          <img src="~assets/pixel-logo.png" alt="Pixel" height="40" />
         </a>
 
         <div class="navbar-burger">
@@ -43,12 +43,12 @@ export default {
     return {
       items: [
         {
-          title: "Image Upload",
+          title: "Image Logs",
           icon: "home",
           to: { name: "index" },
         },
         {
-          title: "Image Logs",
+          title: "Image Upload",
           icon: "lightbulb",
           to: { name: "images" },
         },

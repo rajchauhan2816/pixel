@@ -28,6 +28,7 @@ export class ImageController {
         @CurrentUser() { username }: User,
     ) {
         createImageDto.file = upload.file;
+        createImageDto.tags = createImageDto.tags.filter((n: string) => n);
         return this.imageService.create(createImageDto, username);
     }
 
@@ -39,6 +40,11 @@ export class ImageController {
     @Get('tags')
     findTags() {
         return this.imageService.findTags();
+    }
+
+    @Get('types')
+    findTypes() {
+        return this.imageService.findTypes();
     }
 
     @Get('tags/:tag')

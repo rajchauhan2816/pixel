@@ -115,6 +115,12 @@ export class ImageService {
         return tags;
     }
 
+    async findTypes() {
+        return {
+            types: ['ASSETS', 'Banner', 'Wallaper', 'Thumbnail', 'HD'],
+        };
+    }
+
     async linkImageTag(tag: string, image: string) {
         return this.tagImageModel.create({
             id: v4(),
