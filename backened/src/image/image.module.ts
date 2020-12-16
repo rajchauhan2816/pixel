@@ -28,9 +28,6 @@ import { S3Module } from 'nestjs-s3';
         S3Module.forRootAsync({
             useFactory: (_: ConfigService) => ({
                 config: {
-                    accessKeyId: 'S3RVER', // This specific key is required when working offline
-                    secretAccessKey: 'S3RVER',
-                    endpoint: 'http://localhost:4569',
                     s3ForcePathStyle: true,
                     signatureVersion: 'v4',
                 },

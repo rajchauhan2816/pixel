@@ -56,6 +56,7 @@ export const handler: any = async (event: any, _context: any) => {
                     Bucket: bucketName + '-resized',
                     Key: hashedName,
                     Body: newBuffer,
+                    ACL: 'public-read',
                 })
                 .promise(),
         );

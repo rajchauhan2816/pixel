@@ -1,25 +1,24 @@
 <template>
   <div>
-    <nav
-      class="navbar header has-shadow is-primary"
-      role="navigation"
-      aria-label="main navigation"
-    >
-      <div class="navbar-brand">
-        <a class="navbar-item" href="/">
-          <img src="~assets/pixel-logo.png" alt="Pixel" height="40" />
-        </a>
+    <b-navbar v-if="loggedIn" class="is-primary">
+      <template slot="brand">
+        <b-navbar-item tag="router-link" :to="{ path: '/' }">
+          <img
+            src="~/assets/pixel-logo.png"
+            alt="Lightweight UI components for Vue.js based on Bulma"
+          />
+        </b-navbar-item>
+      </template>
 
-        <div class="navbar-burger">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </nav>
+      <template slot="end">
+        <b-navbar-item tag="div">
+          <b-button type="is-danger" @click="logOut">Log out</b-button>
+        </b-navbar-item>
+      </template>
+    </b-navbar>
 
     <section class="main-content columns">
-      <aside v-if="$auth.loggedIn" class="column is-2 section">
+      <aside v-if="toShowSideBar" class="column is-2 section">
         <p class="menu-label is-hidden-touch">Menu</p>
         <ul class="menu-list">
           <li v-for="(item, key) of items" :key="key">
@@ -50,10 +49,25 @@ export default {
         {
           title: "Image Upload",
           icon: "lightbulb",
-          to: { name: "images" },
+          to: { name: "upload" },
         },
       ],
     };
+  },
+  methods: {
+    async logOut() {
+      await this.$auth.logout("local");
+      window.location.href = "/login";
+    },
+  },
+  computed: {
+    loggedIn() {
+      console.log(this.$auth);
+      return this.$auth.loggedIn;
+    },
+    toShowSideBar() {
+      return this.$auth.loggedIn && this.$auth.user.role === "Admin";
+    },
   },
 };
 </script>

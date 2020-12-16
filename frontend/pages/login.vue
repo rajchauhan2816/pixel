@@ -53,9 +53,15 @@ export default {
         let response = await this.$auth.loginWith("local", {
           data: this.login,
         });
-        await this.$router.push({ path: "/" });
+        window.location.href = "/";
       } catch (err) {
-        console.log(err);
+        this.$buefy.notification.open({
+          duration: 1000,
+          message: `Login Failed`,
+          position: "is-bottom-right",
+          type: "is-danger",
+          hasIcon: true,
+        });
       }
     },
   },

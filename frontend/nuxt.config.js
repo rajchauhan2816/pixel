@@ -43,7 +43,7 @@ export default {
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
   axios: {
-    baseURL: "http://localhost:3000/dev"
+    baseURL: "https://7fygtr0gw6.execute-api.ap-south-1.amazonaws.com/dev"
   },
 
   auth: {

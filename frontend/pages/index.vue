@@ -143,6 +143,7 @@
         </b-button>
       </b-table-column>
       <b-table-column
+        v-if="isAdmin"
         field="Action"
         label="Action"
         sortable
@@ -157,7 +158,6 @@
         </b-button>
       </b-table-column>
     </b-table>
-    <b-button>Fetch</b-button>
   </section>
 </template>
 
@@ -176,6 +176,11 @@ export default {
       images: [],
       rowData: [],
     };
+  },
+  computed: {
+    isAdmin() {
+      return this.$auth.user.role === "Admin";
+    },
   },
   async fetch() {
     const images = await this.$axios.get("/image");
@@ -214,11 +219,23 @@ export default {
         newUrl = row.url;
       } else {
         const splitUrl = row.url.split("/");
+        console.log(splitUrl);
 
         for (let i = 0; i < splitUrl.length; i++) {
-          if (i === 3) {
-            newUrl += `${splitUrl[i]}-resized`;
-          } else if (i === 4) {
+          if (i === 2) {
+            /* ------------------------------- Bucket name ------------------------------ */
+
+            let bucketUrl = splitUrl[i].split(".");
+            bucketUrl[0] += "-resized";
+
+            let temp = "";
+            bucketUrl.forEach((val) => {
+              temp += val + ".";
+            });
+
+            newUrl += temp;
+            newUrl = newUrl.slice(0, -1);
+          } else if (i === 3) {
             const fileUrlArr = splitUrl[i].split(".");
             newUrl += `${fileUrlArr[0]}_${this.rowData[
               row.id

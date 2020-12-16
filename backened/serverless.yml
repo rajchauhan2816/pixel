@@ -10,6 +10,8 @@ provider:
         STAGE: ${self:provider.stage}
         REGION: ${self:provider.region}
         NO_COLOR: ${env:NO_COLOR, 'true'}
+        JWT_SECRET: supersecretkey
+        S3_BUCKET: pixel-images
     apiGateway:
         shouldStartNameWithService: true
     iamRoleStatements:
@@ -23,12 +25,19 @@ provider:
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
           Resource: arn:aws:dynamodb:${self:provider.region}:*:*
+        - Effect: Allow
+          Action:
+              - 's3:*'
+              #   - 's3:ListBucket'
+              #   - 's3:PutObject'
+              #   - 's3:GetObject'
+          Resource: arn:aws:s3:::*
 
 plugins:
     - serverless-plugin-typescript
-    - serverless-dynamodb-local
-    - serverless-s3-local
-    - serverless-offline
+    # - serverless-dynamodb-local
+    # - serverless-s3-local
+    # - serverless-offline
 
 # remove the unnecessary packages to keep small upload size
 package:

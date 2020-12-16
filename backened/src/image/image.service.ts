@@ -4,7 +4,7 @@ import { v4 } from 'uuid';
 import { ImageKey, Image } from './entities/image.entity';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectS3, S3 } from 'nestjs-s3';
 import { CreateImageDto } from './dto/create-image.dto';
 
@@ -15,6 +15,7 @@ export class ImageService {
      */
     bucketName: string;
     s3Url: string;
+    region: string;
     constructor(
         @InjectModel('image')
         private readonly model: Model<Image, ImageKey>,
@@ -26,59 +27,64 @@ export class ImageService {
     ) {
         this.bucketName = config.get('S3_BUCKET') || 'pixel_images';
         this.s3Url = config.get('S3_BASE_URL') || 'http://localhost:4569';
+        this.region = config.get('REGION') || 'ap-south-1';
     }
     async create(dto: CreateImageDto, username: string) {
-        const { categoryType, tags } = dto;
+        try {
+            const { categoryType, tags } = dto;
 
-        const uploadPromises: any[] = [];
-        const dbPromises: any[] = [];
-        const tagImagePromises: any[] = [];
-        for (let i = 0; i < dto.file.length; i++) {
-            const splitName = dto.file[i].originalname.split('.');
-            const hashedName = `${splitName[0]}_${v4()}.${splitName[1]}`;
-            /* ----------------------------- Uploading file ----------------------------- */
+            const uploadPromises: any[] = [];
+            const dbPromises: any[] = [];
+            const tagImagePromises: any[] = [];
+            for (let i = 0; i < dto.file.length; i++) {
+                const splitName = dto.file[i].originalname.split('.');
+                const hashedName = `${splitName[0]}_${v4()}.${splitName[1]}`;
+                /* ----------------------------- Uploading file ----------------------------- */
 
-            uploadPromises.push(
-                this.s3
-                    .putObject({
-                        Bucket: this.bucketName,
-                        Key: hashedName,
-                        Body: dto.file[i].buffer,
-                    })
-                    .promise(),
-            );
+                uploadPromises.push(
+                    this.s3
+                        .putObject({
+                            Bucket: this.bucketName,
+                            Key: hashedName,
+                            Body: dto.file[i].buffer,
+                            ACL: 'public-read',
+                        })
+                        .promise(),
+                );
 
-            /* ------------------------- Inserting into database ------------------------ */
+                /* ------------------------- Inserting into database ------------------------ */
 
-            const imageId = v4();
+                const imageId = v4();
 
-            console.log(tags);
+                dbPromises.push(
+                    this.model.create({
+                        id: imageId,
+                        categoryType,
+                        tags,
+                        createAt: new Date().toISOString(),
+                        format: splitName[1],
+                        name: dto.file[i].originalname,
+                        uploadedBy: username,
+                        url: `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${hashedName}`,
+                        size: dto.file[i].size,
+                    }),
+                );
 
-            dbPromises.push(
-                this.model.create({
-                    id: imageId,
-                    categoryType,
-                    tags,
-                    createAt: new Date().toISOString(),
-                    format: splitName[1],
-                    name: dto.file[i].originalname,
-                    uploadedBy: username,
-                    url: `${this.s3Url}/${this.bucketName}/${hashedName}`,
-                    size: dto.file[i].size,
-                }),
-            );
+                /* ------------------------------ Tagging Image ----------------------------- */
 
-            /* ------------------------------ Tagging Image ----------------------------- */
+                tags.forEach((val) =>
+                    tagImagePromises.push(this.linkImageTag(val, imageId)),
+                );
+            }
+            await Promise.all(uploadPromises);
 
-            tags.forEach((val) =>
-                tagImagePromises.push(this.linkImageTag(val, imageId)),
-            );
+            await Promise.all(tagImagePromises);
+
+            return Promise.all(dbPromises);
+        } catch (error) {
+            console.log(error);
+            throw new BadRequestException();
         }
-        await Promise.all(uploadPromises);
-
-        await Promise.all(tagImagePromises);
-
-        return Promise.all(dbPromises);
     }
 
     async findAll() {

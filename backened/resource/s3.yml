@@ -1,8 +1,8 @@
 Resources:
-    ImageBucket:
-        Type: AWS::S3::Bucket
-        Properties:
-            BucketName: pixel-images
+    # ImageBucket:
+    #     Type: AWS::S3::Bucket
+    #     Properties:
+    #         BucketName: pixel-images
     ResizedImageBucket:
         Type: AWS::S3::Bucket
         Properties:
