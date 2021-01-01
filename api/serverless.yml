@@ -1,5 +1,6 @@
-service: pixel
-
+# service: pixel
+name: pixel-api
+useDotenv: true
 provider:
     name: aws
     runtime: nodejs12.x
@@ -11,7 +12,7 @@ provider:
         REGION: ${self:provider.region}
         NO_COLOR: ${env:NO_COLOR, 'true'}
         JWT_SECRET: supersecretkey
-        S3_BUCKET: pixel-images
+        S3_BUCKET: ${self:service}-images
     apiGateway:
         shouldStartNameWithService: true
     iamRoleStatements:
@@ -28,22 +29,21 @@ provider:
         - Effect: Allow
           Action:
               - 's3:*'
-              #   - 's3:ListBucket'
-              #   - 's3:PutObject'
-              #   - 's3:GetObject'
           Resource: arn:aws:s3:::*
 
 plugins:
     - serverless-plugin-typescript
-    # - serverless-dynamodb-local
-    # - serverless-s3-local
-    # - serverless-offline
+    - serverless-dynamodb-local
+    - serverless-s3-local
+    - serverless-offline
+    - serverless-layers
 
 # remove the unnecessary packages to keep small upload size
 package:
     exclude:
-        - node_modules/typescript/**
-        - node_modules/@types/**
+        # - node_modules/typescript/**
+        # - node_modules/@types/**
+        - node_modules/**
 
 custom:
     dynamodb:
@@ -56,6 +56,12 @@ custom:
             seed: false
     s3:
         host: localhost
+    serverless-layers:
+        layersDeploymentBucket: ${self:service}-${self:provider.stage}-dependencies
+        functions: # optional
+            - index-function
+            - resize
+        dependenciesPath: ./package.json
 
 functions:
     index-function:
